@@ -1,23 +1,32 @@
 pipeline {
-agent any
-tools {
-    maven '3.8.7'
-}
+    agent any
+    tools {
+        maven 'MAVEN'
+    }
 
-stages {
-    stage('Build') {
-        steps {
-            echo 'Hello World'
-            checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'jenkins-jenkins ', url: 'https://github.com/vartak14/jenkins-pipeline-example.git']])
-            sh "mvn -Dmaven.test.failure.ignore=true clean package"
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Building the project...'
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'jenkins-jenkins', url: 'https://github.com/vartak14/jenkins-pipeline-example.git']])
+                sh "mvn -Dmaven.test.failure.ignore=true clean package"
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo 'Running tests...'
+                sh "mvn test"
+            }
         }
     }
-}
-post {
-    always {
-        junit(
-            allowEmptyResults:true,
-            testResults: 'test-reports/.xml'
+
+    post {
+        always {
+            echo 'Archiving test results...'
+            junit(
+                allowEmptyResults: true,
+                testResults: '**/target/surefire-reports/*.xml'
             )
         }
     }
