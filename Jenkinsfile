@@ -1,33 +1,57 @@
 pipeline {
     agent any
     tools {
-        maven '3.8.7'
+        maven 'MAVEN'
     }
 
     stages {
         stage('Build') {
             steps {
-                echo 'Building the project...'
-                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'jenkins-jenkins', url: 'https://github.com/vartak14/jenkins-pipeline-example.git']])
+                echo 'Hello World'
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'jenkins-jenkins', url: 'https://github.com/vishvambharj/jenkins-pipeline-example.git']])
                 sh "mvn -Dmaven.test.failure.ignore=true clean package"
             }
         }
 
         stage('Test') {
             steps {
-                echo 'Running tests...'
+                echo 'Running Tests'
                 sh "mvn test"
+            }
+        }
+
+        stage('Deliver') {
+            steps {
+                echo 'Delivering the build artifacts'
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'target/*.jar', followSymlinks: false
+
+                script {
+                    // Add the remote server's SSH key to known_hosts to avoid verification issues
+                    sh "ssh-keyscan -H 13.60.203.87 >> /var/lib/jenkins/.ssh/known_hosts"
+
+                    def jarFile = sh(script: "ls target/*.jar", returnStdout: true).trim()
+                    if (jarFile) {
+                        echo "Found JAR file: ${jarFile}"
+                        // Proceed with SCP to deploy the file
+                        sh "scp -i /var/lib/jenkins/.ssh/id_rsa ${jarFile} ubuntu@13.60.203.87:/var/www/myapp/"
+                    } else {
+                        error "No JAR file found to deploy!"
+                    }
+                }
             }
         }
     }
 
     post {
         always {
-            echo 'Archiving test results...'
-            junit(
-                allowEmptyResults: true,
-                testResults: '**/target/surefire-reports/*.xml'
-            )
+            script {
+                def testResults = findFiles(glob: 'test-reports/*.xml')
+                if (testResults) {
+                    junit testResults: 'test-reports/*.xml', allowEmptyResults: true
+                } else {
+                    echo 'No test results found.'
+                }
+            }
         }
     }
 }
