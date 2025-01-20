@@ -1,7 +1,7 @@
 pipeline {
     agent any
     tools {
-        maven 'maven'
+        maven '3.8.7'
     }
 
     stages {
@@ -27,13 +27,13 @@ pipeline {
 
                 script {
                     // Add the remote server's SSH key to known_hosts to avoid verification issues
-                    sh "ssh-keyscan -H 192.168.1.202 >> /var/lib/jenkins/.ssh/known_hosts"
+                    sh "ssh-keyscan -H 3.111.29.169 >> /var/lib/jenkins/.ssh/known_hosts"
 
                     def jarFile = sh(script: "ls target/*.jar", returnStdout: true).trim()
                     if (jarFile) {
                         echo "Found JAR file: ${jarFile}"
                         // Proceed with SCP to deploy the file
-                        sh "scp -i /var/lib/jenkins/.ssh/id_rsa ${jarFile} vartak@192.168.1.202:/var/www/myapp/"
+                        sh "scp -i /var/lib/jenkins/.ssh/id_rsa ${jarFile} ubuntu@3.111.29.169:/var/www/myapp/"
                     } else {
                         error "No JAR file found to deploy!"
                     }
