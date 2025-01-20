@@ -28,14 +28,14 @@ pipeline {
                 script {
                     // Add the remote server's SSH key to known_hosts to avoid verification issues
                     sh"""
-                    scp -i /var/lib/jenkins/.ssh/id_rsa target/my-app-1.0-SNAPSHOT.jar vartak@192.168.1.202:/var/www/myapp/"""
+                    scp -i /var/lib/jenkins/.ssh/id_rsa target/my-app-1.0-SNAPSHOT.jar ubuntu@52.66.100.173:/var/www/myapp/"""
 
 
                     def jarFile = sh(script: "ls target/*.jar", returnStdout: true).trim()
                     if (jarFile) {
                         echo "Found JAR file: ${jarFile}"
                         // Proceed with SCP to deploy the file
-                        sh "scp -i /var/lib/jenkins/.ssh/id_rsa ${jarFile} vartak@192.168.1.202:/var/www/myapp/"
+                        sh "scp -i /var/lib/jenkins/.ssh/id_rsa ${jarFile} ubuntu@52.66.100.173:/var/www/myapp/"
                     } else {
                         error "No JAR file found to deploy!"
                     }
