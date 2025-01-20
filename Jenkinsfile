@@ -27,7 +27,9 @@ pipeline {
 
                 script {
                     // Add the remote server's SSH key to known_hosts to avoid verification issues
-                    sh "ssh-keyscan -H 192.168.1.202 >> /var/lib/jenkins/.ssh/known_hosts"
+                    sh"""
+                    scp -i /var/lib/jenkins/.ssh/id_rsa target/my-app-1.0-SNAPSHOT.jar vartak@192.168.1.202:/var/www/myapp/"""
+
 
                     def jarFile = sh(script: "ls target/*.jar", returnStdout: true).trim()
                     if (jarFile) {
